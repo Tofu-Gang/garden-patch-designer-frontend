@@ -4,6 +4,7 @@
 
 - React 19 + Vite
 - Tailwind CSS 4 (via `@tailwindcss/vite`)
+- Axios (HTTP client for all API calls)
 - Plain SVG overlay for patch labelling (no canvas library)
 - JavaScript/JSX (no TypeScript)
 
