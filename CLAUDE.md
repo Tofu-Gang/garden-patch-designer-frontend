@@ -20,7 +20,10 @@ The layout has two areas: the garden map (left/main) and a patch detail panel (r
 npm run dev      # Start dev server
 npm run build    # Production build
 npm run lint     # ESLint
+npm test         # Vitest unit tests (run once)
 ```
+
+Unit tests are written with [Vitest](https://vitest.dev/) and live alongside the source files as `*.test.js`. Every utility/helper function in `src/utils/` must have a corresponding test file.
 
 ## Architecture
 

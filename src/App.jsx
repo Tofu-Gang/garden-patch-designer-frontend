@@ -1,4 +1,5 @@
 import usePatches from "./hooks/usePatches";
+import GardenMap from "./components/GardenMap";
 
 function App() {
     const {
@@ -16,10 +17,12 @@ function App() {
 
     return (
         <div className="flex h-screen w-screen overflow-hidden">
-            <div className="flex-1 bg-gray-100 flex items-center justify-center">
-                {/* GardenMap — Phase 2 */}
-                <span className="text-gray-400">Garden map</span>
-            </div>
+            <GardenMap
+                patches={patches}
+                selectedPatch={selectedPatch}
+                onSelect={setSelectedPatch}
+                onCreate={createPatch}
+            />
             <div className="w-80 shrink-0 border-l border-gray-200 bg-white overflow-y-auto">
                 {/* PatchPanel — Phase 3 */}
                 <span className="text-gray-400 p-4 block">Patch panel</span>
