@@ -75,26 +75,26 @@ export default function usePatches() {
      * @param {object} attributes - Fields to update.
      * @returns {Promise<object>} The normalized updated patch.
      */
-    const updatePatch = useCallback(async (id, attributes) => {
-        const data = await apiFetch(`/api/patches/${id}`, {
+    const updatePatch = useCallback(async (documentId, attributes) => {
+        const data = await apiFetch(`/api/patches/${documentId}?populate=member`, {
             method: "PUT",
             body: JSON.stringify({ data: attributes }),
         });
         const updated = normalizeResource(data.data);
-        setPatches((previous) => previous.map((patch) => (patch.id === id ? updated : patch)));
-        setSelectedPatch((previous) => (previous?.id === id ? updated : previous));
+        setPatches((previous) => previous.map((patch) => (patch.documentId === documentId ? updated : patch)));
+        setSelectedPatch((previous) => (previous?.documentId === documentId ? updated : previous));
         return updated;
     }, []);
 
     /**
      * DELETEs a patch and clears the selection if the deleted patch was active.
-     * @param {number} id - ID of the patch to delete.
+     * @param {string} documentId - documentId of the patch to delete.
      * @returns {Promise<void>}
      */
-    const deletePatch = useCallback(async (id) => {
-        await apiFetch(`/api/patches/${id}`, { method: "DELETE" });
-        setPatches((previous) => previous.filter((patch) => patch.id !== id));
-        setSelectedPatch((previous) => (previous?.id === id ? null : previous));
+    const deletePatch = useCallback(async (documentId) => {
+        await apiFetch(`/api/patches/${documentId}`, { method: "DELETE" });
+        setPatches((previous) => previous.filter((patch) => patch.documentId !== documentId));
+        setSelectedPatch((previous) => (previous?.documentId === documentId ? null : previous));
     }, []);
 
     return {
