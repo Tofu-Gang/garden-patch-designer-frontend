@@ -10,20 +10,6 @@ import PatchRect from "./PatchRect";
 const MIN_PATCH_SIZE_PERCENT = 2;
 
 /**
- * Aspect ratio of the garden map image.
- * ⚠️ PLACEHOLDER — hardcoded to match the generated SVG placeholder (800×600).
- * Update to match the real map image dimensions once received from the graphic designer.
- */
-const MAP_ASPECT_RATIO = "4 / 3";
-
-/**
- * Path to the garden map image.
- * ⚠️ PLACEHOLDER — currently points to a generated SVG placeholder.
- * Replace with the real map image path once received from the graphic designer.
- */
-const MAP_IMAGE_SRC = "/garden-map.svg";
-
-/**
  * Renders the garden map image with an absolutely-positioned SVG overlay for
  * drawing and selecting patches. Manages transient drawing state (start point
  * and live preview rect) locally; delegates persistence to the parent via
@@ -43,6 +29,14 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
 
     /** Live preview rect in percent coords { x, y, width, height }, or null. */
     const [previewRect, setPreviewRect] = useState(null);
+
+    /** Aspect ratio derived from the image's natural dimensions once loaded. */
+    const [aspectRatio, setAspectRatio] = useState(undefined);
+
+    function handleImageLoad(event) {
+        const { naturalWidth, naturalHeight } = event.target;
+        setAspectRatio(`${naturalWidth} / ${naturalHeight}`);
+    }
 
     /**
      * Begins a new drawing interaction on mousedown over the SVG background.
@@ -92,16 +86,14 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
             {/*
               * Wrapper constrains the map + overlay to the correct aspect ratio so the
               * SVG overlay aligns exactly with the image at any viewport size.
-              * ⚠️ PLACEHOLDER — aspect-ratio is hardcoded to 4/3 to match the generated
-              * SVG placeholder. Update MAP_ASPECT_RATIO once the real map is available.
               */}
-            <div className="relative max-w-full max-h-full" style={{ aspectRatio: MAP_ASPECT_RATIO }}>
-                {/* ⚠️ PLACEHOLDER — replace MAP_IMAGE_SRC once the real map image is available. */}
+            <div className="relative max-w-full max-h-full aspect-(--aspect-ratio)" style={{ "--aspect-ratio": aspectRatio }}>
                 <img
-                    src={MAP_IMAGE_SRC}
+                    src={"/garden-map.png"}
                     alt="Garden map"
                     className="w-full h-full object-contain"
                     draggable={false}
+                    onLoad={handleImageLoad}
                 />
 
                 {/*
