@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function PatchPanel({ patch, members, onUpdate, onDelete }) {
+export default function PatchPanel({ patch, members, onUpdate, onDelete, selectedSeason, onSeasonChange }) {
     const [form, setForm] = useState(null);
 
     useEffect(() => {
@@ -17,10 +17,33 @@ export default function PatchPanel({ patch, members, onUpdate, onDelete }) {
         });
     }, [patch]);
 
+    const seasonSelector = (
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
+            <button
+                onClick={() => onSeasonChange(selectedSeason - 1)}
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600"
+                aria-label="Previous season"
+            >
+                ‹
+            </button>
+            <span className="flex-1 text-center font-medium text-gray-800">{selectedSeason}</span>
+            <button
+                onClick={() => onSeasonChange(selectedSeason + 1)}
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600"
+                aria-label="Next season"
+            >
+                ›
+            </button>
+        </div>
+    );
+
     if (!patch || !form) {
         return (
-            <div className="p-4 text-gray-400 text-sm">
-                Select or draw a patch to see its details.
+            <div>
+                {seasonSelector}
+                <div className="p-4 text-gray-400 text-sm">
+                    Select or draw a patch to see its details.
+                </div>
             </div>
         );
     }
@@ -56,6 +79,8 @@ export default function PatchPanel({ patch, members, onUpdate, onDelete }) {
     }
 
     return (
+        <div>
+        {seasonSelector}
         <div className="p-4 flex flex-col gap-4">
             <h2 className="font-semibold text-gray-800">Patch #{patch.id}</h2>
 
@@ -130,6 +155,7 @@ export default function PatchPanel({ patch, members, onUpdate, onDelete }) {
             >
                 Delete patch
             </button>
+        </div>
         </div>
     );
 }

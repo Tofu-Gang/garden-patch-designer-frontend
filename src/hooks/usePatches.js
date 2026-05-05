@@ -40,6 +40,12 @@ export default function usePatches() {
     const [patches, setPatches] = useState([]);
     const [members, setMembers] = useState([]);
     const [selectedPatch, setSelectedPatch] = useState(null);
+    const [selectedSeason, setSelectedSeasonRaw] = useState(new Date().getFullYear());
+
+    function setSelectedSeason(season) {
+        setSelectedSeasonRaw(season);
+        setSelectedPatch(null);
+    }
 
     /** Fetch all patches (with member relation) and all members on mount. */
     useEffect(() => {
@@ -60,13 +66,13 @@ export default function usePatches() {
     const createPatch = useCallback(async (attributes) => {
         const data = await apiFetch("/api/patches", {
             method: "POST",
-            body: JSON.stringify({ data: attributes }),
+            body: JSON.stringify({ data: { ...attributes, season: selectedSeason } }),
         });
         const created = normalizeResource(data.data);
         setPatches((previous) => [...previous, created]);
         setSelectedPatch(created);
         return created;
-    }, []);
+    }, [selectedSeason]);
 
     /**
      * PUTs updated attributes for an existing patch and keeps both the list
@@ -97,13 +103,17 @@ export default function usePatches() {
         setSelectedPatch((previous) => (previous?.documentId === documentId ? null : previous));
     }, []);
 
+    const filteredPatches = patches.filter((patch) => patch.season === selectedSeason);
+
     return {
-        patches,
+        patches: filteredPatches,
         members,
         selectedPatch,
         setSelectedPatch,
         createPatch,
         updatePatch,
         deletePatch,
+        selectedSeason,
+        setSelectedSeason,
     };
 }

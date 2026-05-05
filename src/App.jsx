@@ -11,6 +11,8 @@ function App() {
         createPatch,
         updatePatch,
         deletePatch,
+        selectedSeason,
+        setSelectedSeason,
     } = usePatches();
 
     return (
@@ -27,6 +29,8 @@ function App() {
                     members={members}
                     onUpdate={updatePatch}
                     onDelete={deletePatch}
+                    selectedSeason={selectedSeason}
+                    onSeasonChange={setSelectedSeason}
                 />
             </div>
         </div>
