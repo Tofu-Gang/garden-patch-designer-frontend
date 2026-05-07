@@ -13,6 +13,9 @@ function App() {
         deletePatch,
         selectedSeason,
         setSelectedSeason,
+        loading,
+        error,
+        retry,
     } = usePatches();
 
     return (
@@ -22,6 +25,9 @@ function App() {
                 selectedPatch={selectedPatch}
                 onSelect={setSelectedPatch}
                 onCreate={createPatch}
+                loading={loading}
+                error={error}
+                onRetry={retry}
             />
             <div className="w-80 shrink-0 border-l border-gray-200 bg-white overflow-y-auto">
                 <PatchPanel

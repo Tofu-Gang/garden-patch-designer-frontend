@@ -1,6 +1,9 @@
 import { useRef, useState } from "react";
 import { eventToPercent, normalizeRect } from "../utils/coords";
 import PatchRect from "./PatchRect";
+import DrawingPreview from "./DrawingPreview";
+import Spinner from "./Spinner";
+import ErrorOverlay from "./ErrorOverlay";
 
 /**
  * Minimum width and height (in percent) a drawn rectangle must reach before
@@ -19,9 +22,12 @@ const MIN_PATCH_SIZE_PERCENT = 2;
  * @param {object}   selectedPatch - The currently selected patch, or null.
  * @param {Function} onSelect      - Called with a patch (or null) when selection changes.
  * @param {Function} onCreate      - Called with { x, y, width, height } when a new patch is drawn.
+ * @param {boolean}  loading       - When true, shows a spinner overlay while data is being fetched.
+ * @param {boolean}  error         - When true, shows an error overlay indicating the backend is unreachable.
+ * @param {Function} onRetry       - Called when the user clicks retry in the error overlay.
  * @returns {JSX.Element}
  */
-export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }) {
+export default function GardenMap({ patches, selectedPatch, onSelect, onCreate, loading, error, onRetry }) {
     const svgRef = useRef(null);
 
     /** Percent coordinates of the mousedown anchor, or null when not drawing. */
@@ -32,6 +38,9 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
 
     /** Aspect ratio derived from the image's natural dimensions once loaded. */
     const [aspectRatio, setAspectRatio] = useState(undefined);
+
+    /** True while a new patch POST is in flight. */
+    const [creating, setCreating] = useState(false);
 
     function handleImageLoad(event) {
         const { naturalWidth, naturalHeight } = event.target;
@@ -72,7 +81,8 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
         const rect = normalizeRect(drawStart.x, drawStart.y, current.x, current.y);
 
         if (rect.width >= MIN_PATCH_SIZE_PERCENT && rect.height >= MIN_PATCH_SIZE_PERCENT) {
-            onCreate(rect);
+            setCreating(true);
+            onCreate(rect).finally(() => setCreating(false));
         } else {
             onSelect(null);
         }
@@ -82,11 +92,24 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
     }
 
     return (
-        <div className="flex-1 bg-gray-100 flex items-center justify-center overflow-hidden">
+        <div className="relative flex-1 bg-gray-100 flex items-center justify-center overflow-hidden select-none">
             {/*
               * Wrapper constrains the map + overlay to the correct aspect ratio so the
               * SVG overlay aligns exactly with the image at any viewport size.
               */}
+            {loading && (
+                <Spinner
+                    message="Načítám…"
+                    slowMessage="Backend se probouzí, může to chvíli trvat…"
+                    slowThreshold={3000}
+                />
+            )}
+            {creating && (
+                <Spinner
+                    message="Vytvářím…"
+                />
+            )}
+            {!loading && error && <ErrorOverlay onRetry={onRetry} />}
             <div className="relative max-w-full max-h-full aspect-(--aspect-ratio)" style={{ "--aspect-ratio": aspectRatio }}>
                 <img
                     src={"/garden-map.png"}
@@ -103,8 +126,7 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
                   */}
                 <svg
                     ref={svgRef}
-                    className="absolute inset-0 w-full h-full"
-                    style={{ cursor: drawStart ? "crosshair" : "default" }}
+                    className="absolute inset-0 w-full h-full cursor-crosshair"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -119,19 +141,7 @@ export default function GardenMap({ patches, selectedPatch, onSelect, onCreate }
                     ))}
 
                     {/* Live drawing preview rect */}
-                    {previewRect && (
-                        <rect
-                            x={`${previewRect.x}%`}
-                            y={`${previewRect.y}%`}
-                            width={`${previewRect.width}%`}
-                            height={`${previewRect.height}%`}
-                            fill="rgba(59, 130, 246, 0.2)"
-                            stroke="#3b82f6"
-                            strokeWidth={1}
-                            strokeDasharray="4 2"
-                            pointerEvents="none"
-                        />
-                    )}
+                    {previewRect && <DrawingPreview rect={previewRect} />}
                 </svg>
             </div>
         </div>

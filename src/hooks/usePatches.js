@@ -41,21 +41,30 @@ export default function usePatches() {
     const [members, setMembers] = useState([]);
     const [selectedPatch, setSelectedPatch] = useState(null);
     const [selectedSeason, setSelectedSeasonRaw] = useState(new Date().getFullYear());
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
 
     function setSelectedSeason(season) {
         setSelectedSeasonRaw(season);
         setSelectedPatch(null);
     }
 
-    /** Fetch all patches (with member relation) and all members on mount. */
+    /** Fetch all patches (with member relation) and all members on mount and on retry. */
     useEffect(() => {
-        apiFetch("/api/patches?populate=member")
-            .then((data) => setPatches((data.data ?? []).map(normalizeResource)))
-            .catch(console.error);
-        apiFetch("/api/members")
-            .then((data) => setMembers((data.data ?? []).map(normalizeResource)))
-            .catch(console.error);
-    }, []);
+        setLoading(true);
+        setError(false);
+        Promise.all([
+            apiFetch("/api/patches?populate=member"),
+            apiFetch("/api/members"),
+        ])
+            .then(([patchesData, membersData]) => {
+                setPatches((patchesData.data ?? []).map(normalizeResource));
+                setMembers((membersData.data ?? []).map(normalizeResource));
+            })
+            .catch(() => setError(true))
+            .finally(() => setLoading(false));
+    }, [retryCount]);
 
     /**
      * POSTs a new patch, appends it to the list, and auto-selects it so the
@@ -115,5 +124,8 @@ export default function usePatches() {
         deletePatch,
         selectedSeason,
         setSelectedSeason,
+        loading,
+        error,
+        retry: () => setRetryCount((c) => c + 1),
     };
 }

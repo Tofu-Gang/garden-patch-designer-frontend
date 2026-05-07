@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@layer base {
+    :root {
+        --patch-default-color: #000000;
+        --patch-fill-opacity: 0.31;
+        --patch-stroke-width: 1;
+        --patch-stroke-width-selected: 4;
+    }
+}
