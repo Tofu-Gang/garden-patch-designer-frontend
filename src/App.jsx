@@ -25,6 +25,7 @@ function App() {
                 selectedPatch={selectedPatch}
                 onSelect={setSelectedPatch}
                 onCreate={createPatch}
+                onUpdate={(patch, rect) => updatePatch(patch.documentId, rect)}
                 loading={loading}
                 error={error}
                 onRetry={retry}

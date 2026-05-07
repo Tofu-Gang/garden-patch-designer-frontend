@@ -52,7 +52,7 @@ export default function PatchPanel({ patch, members, onUpdate, onDelete, selecte
             planted_at: payload.planted_at || null,
             harvested_at: payload.harvested_at || null,
             season: Number(payload.season),
-            member: payload.member_id ? { id: Number(payload.member_id) } : null,
+            member: payload.member_id ? members.find((m) => String(m.id) === String(payload.member_id)) ?? null : null,
         };
         setSavingField(name);
         try {
@@ -84,7 +84,7 @@ export default function PatchPanel({ patch, members, onUpdate, onDelete, selecte
                 planted_at: updated.planted_at || null,
                 harvested_at: updated.harvested_at || null,
                 season: Number(updated.season),
-                member: updated.member_id ? { id: Number(updated.member_id) } : null,
+                member: updated.member_id ? members.find((m) => String(m.id) === String(updated.member_id)) ?? null : null,
             });
         } finally {
             setSavingField(null);
@@ -101,7 +101,7 @@ export default function PatchPanel({ patch, members, onUpdate, onDelete, selecte
                 planted_at: form.planted_at || null,
                 harvested_at: form.harvested_at || null,
                 season: Number(form.season),
-                member: value ? { id: Number(value) } : null,
+                member: value ? members.find((m) => String(m.id) === String(value)) ?? null : null,
             });
         } finally {
             setSavingField(null);

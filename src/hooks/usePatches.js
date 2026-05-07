@@ -91,14 +91,27 @@ export default function usePatches() {
      * @returns {Promise<object>} The normalized updated patch.
      */
     const updatePatch = useCallback(async (documentId, attributes) => {
-        const data = await apiFetch(`/api/patches/${documentId}?populate=member`, {
-            method: "PUT",
-            body: JSON.stringify({ data: attributes }),
+        let original;
+        setPatches((previous) => {
+            original = previous.find((patch) => patch.documentId === documentId);
+            return previous.map((patch) => (patch.documentId === documentId ? { ...patch, ...attributes } : patch));
         });
-        const updated = normalizeResource(data.data);
-        setPatches((previous) => previous.map((patch) => (patch.documentId === documentId ? updated : patch)));
-        setSelectedPatch((previous) => (previous?.documentId === documentId ? updated : previous));
-        return updated;
+        setSelectedPatch((previous) => (previous?.documentId === documentId ? { ...previous, ...attributes } : previous));
+
+        try {
+            const data = await apiFetch(`/api/patches/${documentId}?populate=member`, {
+                method: "PUT",
+                body: JSON.stringify({ data: attributes }),
+            });
+            const updated = normalizeResource(data.data);
+            setPatches((previous) => previous.map((patch) => (patch.documentId === documentId ? updated : patch)));
+            setSelectedPatch((previous) => (previous?.documentId === documentId ? updated : previous));
+            return updated;
+        } catch (error) {
+            setPatches((previous) => previous.map((patch) => (patch.documentId === documentId ? original : patch)));
+            setSelectedPatch((previous) => (previous?.documentId === documentId ? original : previous));
+            throw error;
+        }
     }, []);
 
     /**
