@@ -43,7 +43,6 @@ export default function usePatches() {
     const [selectedSeason, setSelectedSeasonRaw] = useState(new Date().getFullYear());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const [retryCount, setRetryCount] = useState(0);
 
     function setSelectedSeason(season) {
         setSelectedSeasonRaw(season);
@@ -54,17 +53,29 @@ export default function usePatches() {
     useEffect(() => {
         setLoading(true);
         setError(false);
-        Promise.all([
-            apiFetch("/api/patches?populate=member"),
-            apiFetch("/api/members"),
-        ])
-            .then(([patchesData, membersData]) => {
-                setPatches((patchesData.data ?? []).map(normalizeResource));
+
+        apiFetch("/api/patches?pagination[pageSize]=1")
+            .then((response) => {
+                const pageCount = response.meta.pagination.pageCount;
+                const pageRequests = Array.from({ length: pageCount }, (_, i) =>
+                    apiFetch(`/api/patches?populate=member&pagination[pageSize]=100&pagination[page]=${i + 1}`)
+                );
+                return Promise.all([
+                    Promise.all(pageRequests),
+                    apiFetch("/api/members?pagination[pageSize]=100")
+                ]);
+            })
+            .then(([pages, membersData]) => {
+                setPatches(pages.flatMap((page) => (page.data ?? []).map(normalizeResource)));
                 setMembers((membersData.data ?? []).map(normalizeResource));
             })
-            .catch(() => setError(true))
-            .finally(() => setLoading(false));
-    }, [retryCount]);
+            .catch(() => {
+                setError(true);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
 
     /**
      * POSTs a new patch, appends it to the list, and auto-selects it so the
@@ -139,6 +150,5 @@ export default function usePatches() {
         setSelectedSeason,
         loading,
         error,
-        retry: () => setRetryCount((c) => c + 1),
     };
 }
